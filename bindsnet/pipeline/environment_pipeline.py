@@ -6,7 +6,7 @@ import torch
 from tqdm import tqdm
 
 from .base_pipeline import BasePipeline
-from ..analysis.pipeline_analysis import MatplotlibAnalyzer
+from ..analysis.pipeline_analysis import PipelineAnalyzer, MatplotlibAnalyzer
 from ..environment import Environment
 from ..network import Network
 from ..network.nodes import AbstractInput
@@ -49,8 +49,7 @@ class EnvironmentPipeline(BasePipeline):
         :param int overlay_input: Overlay the last X previous input
         :param float percent_of_random_action: chance to choose random action
         :param int random_action_after: take random action if same output action counter reach
-
-            timestep.
+        :param PipelineAnalyzer analyzer: an analyzer for plotting timestep.
         """
         super().__init__(network, **kwargs)
 
@@ -109,7 +108,8 @@ class EnvironmentPipeline(BasePipeline):
         self.reward_plot = None
         self.first = True
 
-        self.analyzer = MatplotlibAnalyzer(**self.plot_config)
+        analyzer = kwargs.get("analyzer", MatplotlibAnalyzer)
+        self.analyzer = analyzer(**self.plot_config)
 
         if self.output is not None:
             self.network.add_monitor(
@@ -292,6 +292,7 @@ class EnvironmentPipeline(BasePipeline):
         self.network.reset_state_variables()
         self.accumulated_reward = 0.0
         self.step_count = 0
+        self.total_step_count = 0
         self.overlay_start = True
         self.action = torch.tensor(-1)
         self.last_action = torch.tensor(-1)
@@ -319,6 +320,6 @@ class EnvironmentPipeline(BasePipeline):
                     self.analyzer.plot_voltages(*self.get_voltage_data())
             elif key == "reward_eps" and item is not None:
                 if self.episode % item == 0 and done:
-                    self.analyzer.plot_reward(self.reward_list)
+                    self.analyzer.plot_reward(self.reward_list, step=self.global_step_count)
 
         self.analyzer.finalize_step()

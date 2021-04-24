@@ -299,7 +299,7 @@ class MatplotlibAnalyzer(PipelineAnalyzer):
 
 
 class TensorboardAnalyzer(PipelineAnalyzer):
-    def __init__(self, summary_directory: str = "./logs"):
+    def __init__(self, summary_directory: str = "./logs", **kwargs):
         # language=rst
         """
         Initializes the analyzer.

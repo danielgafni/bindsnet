@@ -1,5 +1,5 @@
 from . import encodings
-
+from . import preprocessing
 
 class Encoder:
     # language=rst
@@ -115,3 +115,19 @@ class RankOrderEncoder(Encoder):
         super().__init__(time, dt=dt, **kwargs)
 
         self.enc = encodings.rank_order
+
+
+class PositiveEncoder:
+    def __init__(self, encoder, dim=0):
+        """
+        Wraps an encoder to make it work with negative inputs.
+        Separates the inputs into positive and negative parts.
+        They get stacked and the negative part is turned positive.
+        Then the inputs are passed to a standard encoder.
+        """
+        self.encoder = encoder
+        self.dim = dim
+
+    def __call__(self, inpts):
+        positive_inpts = preprocessing.to_positive(inpts, dim=self.dim)
+        return self.enc(positive_inpts, *self.encoder.enc_args, **self.enc_kwargs)

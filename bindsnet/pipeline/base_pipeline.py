@@ -70,7 +70,7 @@ class BasePipeline:
             "plot_config", {"data_step": True, "data_length": 100}
         )
 
-        if self.plot_config["data_step"] is not None:
+        if self.plot_config.get("data_step", None) is not None:
             for l in self.network.layers:
                 self.network.add_monitor(
                     Monitor(
@@ -89,6 +89,7 @@ class BasePipeline:
         self.print_interval = kwargs.get("print_interval", None)
         self.test_interval = kwargs.get("test_interval", None)
         self.step_count = 0
+        self.global_step_count = 0
         self.init_fn()
         self.clock = time.time()
         self.allow_gpu = kwargs.get("allow_gpu", True)
@@ -107,6 +108,7 @@ class BasePipeline:
         """
         self.network.reset_state_variables()
         self.step_count = 0
+        self.global_step_count = 0
 
     def step(self, batch: Any, **kwargs) -> Any:
         # language=rst
@@ -119,6 +121,7 @@ class BasePipeline:
             anything. Passed to plotting to accommodate this.
         """
         self.step_count += 1
+        self.global_step_count += 1
 
         batch = recursive_to(batch, self.device)
         step_out = self.step_(batch, **kwargs)

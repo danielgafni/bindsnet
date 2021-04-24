@@ -1,7 +1,9 @@
-from typing import Optional
+from typing import Optional, Callable
 
 import torch
 import numpy as np
+
+from . import preprocessing
 
 
 def single(
@@ -190,3 +192,11 @@ def rank_order(
             spikes[times[i] - 1, i] = 1
 
     return spikes.reshape(time, *shape)
+
+
+def convert_to_positive(encoder_fn: Callable):
+    def encode(inpts, *args, **kwargs):
+        positive_inpts = preprocessing.to_positive(inpts=inpts)
+        return encoder_fn(positive_inpts, *args, **kwargs)
+
+    return encode
